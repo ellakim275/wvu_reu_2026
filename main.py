@@ -35,7 +35,7 @@ for i in range(1, NUM_INNER + 1):
         state.line_width += cfg.line_width_increment  # always increment, not just when plotting
 
 
-# Labels and title — added once after the loop
+# Labels and title, added once after the loop
 ax_rho.set_ylabel(r'$\rho$', fontsize=14)
 ax_rho.set_xlabel(r'$x/t$',  fontsize=14)
 ax_rho.set_title(

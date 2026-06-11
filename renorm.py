@@ -1,6 +1,7 @@
 import numpy as np
 from config import SolverState, get_primitives
 
+# renormalization step  to trim solution 
 def renorm(state: SolverState) -> SolverState:
     err = 1.0e-7
     lx = state.lx

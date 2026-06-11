@@ -1,9 +1,7 @@
 import numpy as np
 from dataclasses import dataclass, field
 
-
-# Configuration — edit these values to change the problem
-
+#configuration and state classes 
 @dataclass
 class SolverConfig:
 
@@ -41,19 +39,8 @@ class SolverConfig:
 
     def case_number(self) -> int:
         """
-        Determines the case number for plot titles.
-        Mirrors the logic in initvars.m, extended to 3x3.
-
-        Cases are determined by:
-          - sign of u_L
-          - relationship of rho_L to rho_bar (here rho_bar is implicit in A/ρ^α)
-          - value of alpha
-
-        NOTE: the 2x2 code used pbar as a reference density. In this system
-        the analogous concept is embedded in A(v)/ρ^α. You may want to define
-        a reference density rho_bar explicitly and extend the case logic here.
+        placeholder for now until we label all the cases
         """
-        # Placeholder — extend this as the case structure becomes clear
         if self.alpha > 0:
             if self.u_L >= 0:
                 return 1   # expand as needed
@@ -66,7 +53,7 @@ class SolverConfig:
 
 
 
-# Solver state — carries all evolving arrays through the time-stepping loop
+# solver state, carries all evolving arrays through the time-stepping loop
 
 @dataclass
 class SolverState:
@@ -104,7 +91,7 @@ class SolverState:
     line_width: float = 0.25
 
 
-# Initialization function — replaces the setup block in autogen.m
+# Initialization function
 
 def initialize(cfg: SolverConfig) -> SolverState:
     """
@@ -129,19 +116,18 @@ def initialize(cfg: SolverConfig) -> SolverState:
     u   = cfg.u_L   * np.ones(lx)
     v   = cfg.v_L   * np.ones(lx)
 
-    # Apply right state from index 2 onward (0-indexed), matching MATLAB's i=3:lx0
+    # Apply right state from index 2 onward (0-indexed)
     rho[2:] += (cfg.rho_R - cfg.rho_L)
     u[2:]   += (cfg.u_R   - cfg.u_L)
     v[2:]   += (cfg.v_R   - cfg.v_L)
 
-    # Build conserved variable array U = [ρ, ρu, ρv]
+    # Build conserved variable array
     U = np.zeros((3, lx))
     U[0] = rho
     U[1] = rho * u
     U[2] = rho * v
 
-    # Build spatial grid — centered at 0, spacing 2*dx
-    # Mirrors: x = 1:1:lx; centerx = (lx+1)/2; x = 2*dx*(x - centerx)
+    # Build spatial grid
     indices = np.arange(1, lx + 1)
     centerx = (lx + 1) / 2.0
     x = 2 * cfg.dx * (indices - centerx)
@@ -182,6 +168,6 @@ def get_primitives(U: np.ndarray):
     but now for all three primitives.
     """
     rho = U[0]
-    u   = U[1] / U[0]   # ρu / ρ
-    v   = U[2] / U[0]   # ρv / ρ
+    u   = U[1] / U[0]   # rho * u / rho
+    v   = U[2] / U[0]   # rho * v / rho
     return rho, u, v

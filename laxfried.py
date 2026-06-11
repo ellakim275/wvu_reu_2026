@@ -4,6 +4,8 @@ from flux import flux
 from renorm import renorm
 import numpy as np 
 
+# lax-friedrichs method (finite volume method) to update the solution at each time step 
+
 def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
     if not state.started:
         state.started = True

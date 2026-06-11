@@ -1,16 +1,13 @@
 """
-solution_plot.py
-================
-Equivalent of finalitgraph.m and graphs.m, extended to the 3x3 system.
 
 Plots rho, u, and v against the self-similar variable x/t.
 
-Two modes, matching the MATLAB code:
+Two modes:
   - overlay mode: all iterations plotted on the same axes with increasing
                   line width, so convergence to the self-similar solution
-                  is visible (equivalent of graphs.m with hold on)
+                  is visible 
   - final mode:   only the last iteration plotted cleanly
-                  (equivalent of finalitgraph.m)
+
 """
 
 import matplotlib.pyplot as plt
@@ -20,9 +17,6 @@ import numpy as np
 from config import SolverConfig, SolverState, get_primitives
 
 
-# ---------------------------------------------------------------------------
-# Module-level figure handle — persists across calls like MATLAB's figure(1)
-# ---------------------------------------------------------------------------
 _fig = None
 _axes = None   # tuple of (ax_rho, ax_u, ax_v)
 

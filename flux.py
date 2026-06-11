@@ -1,6 +1,7 @@
 import numpy as np 
 from config import get_primitives
 
+# flux function for the system, used in the lax-friedrichs update step
 def flux(U, cfg): 
     rho, u, v, = get_primitives(U)
     A = cfg.compute_A(v, rho)
