@@ -1,0 +1,187 @@
+import numpy as np
+from dataclasses import dataclass, field
+
+
+# Configuration — edit these values to change the problem
+
+@dataclass
+class SolverConfig:
+
+    # grid parameters
+    dx: float = 1.0          # spatial step size
+    lx0: int = 4             # initial number of cells
+    CFL: float = 0.5         # Courant number, must be < 1 for stability
+    renorm_interval: int = 100   # trim flat regions every this many steps
+    total_steps: int = 1000  # total number of time steps per laxfried call
+
+    alpha: float = 0.5       
+
+
+    # INITIAL DATA LEFT AND RIGHT STATES 
+    # Left state (x < 0)
+    rho_L: float = 2.0
+    u_L:   float = 1.0
+    v_L:   float = 0
+
+    # Right state (x > 0)
+    rho_R: float = 5.0
+    u_R:   float = 3.0
+    v_R:   float = 0
+
+    # plotting 
+    t_graph: float = 1.0     # reference time used in locus/phase plane plots
+    line_width_start: float = 0.25   # initial plot line width
+    line_width_increment: float = 0.05  # increase per iteration (for overlay plots)
+
+
+    def compute_A(self, v, rho: np.ndarray) -> np.ndarray:
+        
+        return 1 / (1-v)**rho
+
+
+    def case_number(self) -> int:
+        """
+        Determines the case number for plot titles.
+        Mirrors the logic in initvars.m, extended to 3x3.
+
+        Cases are determined by:
+          - sign of u_L
+          - relationship of rho_L to rho_bar (here rho_bar is implicit in A/ρ^α)
+          - value of alpha
+
+        NOTE: the 2x2 code used pbar as a reference density. In this system
+        the analogous concept is embedded in A(v)/ρ^α. You may want to define
+        a reference density rho_bar explicitly and extend the case logic here.
+        """
+        # Placeholder — extend this as the case structure becomes clear
+        if self.alpha > 0:
+            if self.u_L >= 0:
+                return 1   # expand as needed
+            else:
+                return 2
+        elif self.alpha == 0:
+            return 3
+        else:
+            return 4
+
+
+
+# Solver state — carries all evolving arrays through the time-stepping loop
+
+@dataclass
+class SolverState:
+    """
+    Holds the current numerical solution and grid metadata.
+    All arrays have shape (lx,) for 1D scalar fields.
+    The full conserved state is U with shape (3, lx):
+        U[0] = ρ
+        U[1] = ρu
+        U[2] = ρv
+    """
+
+    # Conserved variable array, shape (3, lx)
+    U: np.ndarray = field(default_factory=lambda: np.zeros((3, 4)))
+
+    # Spatial grid, shape (lx,)
+    x: np.ndarray = field(default_factory=lambda: np.zeros(4))
+
+    # Current number of active cells
+    lx: int = 4
+
+    # Current simulation time
+    t: float = 0.0
+
+    # Total number of time steps taken
+    iters: int = 0
+
+    # Counter for renormalization trigger
+    norm_counter: int = 0
+
+    # Whether the solver has been initialized
+    started: bool = False
+
+    # Current line width for plotting (increases each iteration)
+    line_width: float = 0.25
+
+
+# Initialization function — replaces the setup block in autogen.m
+
+def initialize(cfg: SolverConfig) -> SolverState:
+    """
+    Builds the initial SolverState from a SolverConfig.
+    Equivalent to the initvars + setup block in autogen.m.
+
+    Conserved variables initialized as:
+        U[0] = ρ  — left state everywhere, right state from cell 3 onward
+        U[1] = ρu — same pattern
+        U[2] = ρv — same pattern
+
+    This mirrors the MATLAB initialization:
+        p = pL * ones(1, lx0)
+        for i = 3:lx0
+            p(i) = p(i) + (pR - pL)
+        end
+    """
+    lx = cfg.lx0
+
+    # Build primitive variable arrays
+    rho = cfg.rho_L * np.ones(lx)
+    u   = cfg.u_L   * np.ones(lx)
+    v   = cfg.v_L   * np.ones(lx)
+
+    # Apply right state from index 2 onward (0-indexed), matching MATLAB's i=3:lx0
+    rho[2:] += (cfg.rho_R - cfg.rho_L)
+    u[2:]   += (cfg.u_R   - cfg.u_L)
+    v[2:]   += (cfg.v_R   - cfg.v_L)
+
+    # Build conserved variable array U = [ρ, ρu, ρv]
+    U = np.zeros((3, lx))
+    U[0] = rho
+    U[1] = rho * u
+    U[2] = rho * v
+
+    # Build spatial grid — centered at 0, spacing 2*dx
+    # Mirrors: x = 1:1:lx; centerx = (lx+1)/2; x = 2*dx*(x - centerx)
+    indices = np.arange(1, lx + 1)
+    centerx = (lx + 1) / 2.0
+    x = 2 * cfg.dx * (indices - centerx)
+
+    return SolverState(
+        U=U,
+        x=x,
+        lx=lx,
+        t=0.0,
+        iters=0,
+        norm_counter=1,
+        started=False,
+        line_width=cfg.line_width_start,
+    )
+    
+def __post_init__(self):
+        """
+        Runs automatically after __init__.
+        Validates that all v values are strictly less than 1.
+        """
+        if self.v_L >= 1.0:
+            raise ValueError(
+                "v_L must be strictly less than 1.0"
+            )
+        if self.v_R >= 1.0:
+            raise ValueError(
+                "v_R must be strictly less than 1.0"
+            )
+
+
+def get_primitives(U: np.ndarray):
+    """
+    Recover primitive variables from conserved variables.
+    Returns (rho, u, v) as 1D arrays of length lx.
+
+    Equivalent to:
+        u = q ./ p   (MATLAB)
+    but now for all three primitives.
+    """
+    rho = U[0]
+    u   = U[1] / U[0]   # ρu / ρ
+    v   = U[2] / U[0]   # ρv / ρ
+    return rho, u, v
