@@ -8,22 +8,23 @@ class SolverConfig:
     # grid parameters
     dx: float = 1.0          # spatial step size
     lx0: int = 4             # initial number of cells
-    CFL: float = 0.1         # Courant number, must be < 1 for stability
+    CFL: float = 0.1        # Courant number, must be < 1 for stability
     renorm_interval: int = 100   # trim flat regions every this many steps
     total_steps: int = 1000  # total number of time steps per laxfried call
 
-    alpha: float = 0.5       
+    alpha: float = 0.5   
+    p: float = 0.36
 
 
     # INITIAL DATA LEFT AND RIGHT STATES 
     # Left state (x < 0)
     rho_L: float = 3.0
-    u_L:   float = 7.0
+    u_L:   float = 3.0
     v_L:   float = 0
 
     # Right state (x > 0)
-    rho_R: float = 7.0
-    u_R:   float = 2.0
+    rho_R: float = 10.0
+    u_R:   float = 10.0
     v_R:   float = 0.5
 
     # plotting 
@@ -33,9 +34,9 @@ class SolverConfig:
     A_const: float = 1.0  # constant A for compute_A, can be modified for different cases
 
 
-    def compute_A(self, v, rho: np.ndarray) -> np.ndarray:
+    def compute_A(self, v, p: np.ndarray) -> np.ndarray:
         
-        return 1/ ((1 - v)**rho)
+        return 1/ ((1 - v)**(p))
         #return self.A_const * np.ones_like(rho)  # A is constant for all rho, can be modified as needed
 
 
