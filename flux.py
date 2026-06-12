@@ -6,6 +6,6 @@ def flux(U, cfg):
     rho, u, v, = get_primitives(U)
     A = cfg.compute_A(v, rho)
     f1 = rho * u
-    f2 = rho * (u**2) - (A / (rho ** cfg.alpha))
+    f2 = rho * (u**2) - (A / (rho ** cfg.alpha)) #this is the problem function that is making u blow up 
     f3 = rho * u * v
     return np.array([f1, f2, f3])

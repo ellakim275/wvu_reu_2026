@@ -22,7 +22,7 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
     F_left = np.concatenate([F[:, :1], F[:, :-1]], axis=1)
     
     ##maybe change this update method but this is what was in the matlab code 
-    state.U = 0.5 * (U_left + state.U) + (0.5 * dt * (F_left - F))
+    state.U = 0.5 * (U_left + state.U) + (0.5 * dt * (F_left - F)) #check the minus sign here 
     
     # extend U by repeating rightmost column
     state.U = np.concatenate([state.U, state.U[:, -1:]], axis=1)
@@ -33,7 +33,6 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
     state.x = np.append(state.x, new_point)
 
     state.lx += 1
-
     state.norm_counter += 1
     if state.norm_counter == cfg.renorm_interval:
         state = renorm(state)
