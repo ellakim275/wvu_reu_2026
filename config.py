@@ -17,24 +17,25 @@ class SolverConfig:
 
     # INITIAL DATA LEFT AND RIGHT STATES 
     # Left state (x < 0)
-    rho_L: float = 2.0
-    u_L:   float = 1.0
+    rho_L: float = 3.0
+    u_L:   float = 3.0
     v_L:   float = 0
 
     # Right state (x > 0)
-    rho_R: float = 5.0
-    u_R:   float = 3.0
-    v_R:   float = 0
+    rho_R: float = 7.0
+    u_R:   float = 9.0
+    v_R:   float = 0.5
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots
     line_width_start: float = 0.25   # initial plot line width
     line_width_increment: float = 0.05  # increase per iteration (for overlay plots)
+    A_const: float = 1.0  # constant A for compute_A, can be modified for different cases
 
 
     def compute_A(self, v, rho: np.ndarray) -> np.ndarray:
         
-        return 1 / (1-v)**rho
+        return 1/ ((1 - v)**rho)
 
 
     def case_number(self) -> int:

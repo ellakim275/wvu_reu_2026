@@ -6,6 +6,8 @@ import os
 
 from config import SolverConfig, initialize, get_primitives
 from laxfried import lax_friedrichs
+from phase_plot_3d import phase_plot_3d   # added at top
+
 
 # params
 NUM_INNER = 200# how many times lax_friedrichs is called (overlay curves)
@@ -57,7 +59,6 @@ ax_v.set_xlabel(
     f"({cfg.rho_R}, {cfg.u_R}, {cfg.v_R})",
     fontsize=9
 )
-
 # Save
 fname = (
     f"Case{cfg.case_number()}"
@@ -69,3 +70,7 @@ fname = (
 out_path = os.path.join(OUTPUT_DIR, fname)
 fig.savefig(out_path, dpi=150, bbox_inches='tight')
 print(f"Saved: {out_path}")
+
+phase_plot_3d(states=[state], cfg=cfg,       # added at bottom
+    save_html=os.path.join(OUTPUT_DIR, fname + "_3d.html"))
+
