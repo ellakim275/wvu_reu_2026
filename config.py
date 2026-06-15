@@ -6,53 +6,41 @@ from dataclasses import dataclass, field
 class SolverConfig:
 
     # grid parameters
-    dx: float = 1.0          # spatial step size
+    dx: float = 0.5          # spatial step size
     lx0: int = 4             # initial number of cells
-    CFL: float = 0.1        # Courant number, must be < 1 for stability
+    CFL: float = 0.8       # Courant number, must be < 1 for stability
     renorm_interval: int = 100   # trim flat regions every this many steps
-    total_steps: int = 1000  # total number of time steps per laxfried call
+    total_steps: int = 20000  # total number of time steps per laxfried call
 
-    alpha: float = 0.5   
-    p: float = 0.36
+    alpha: float = 0.5 # KEEP AS 1/2 FOR NOW 
+    p: float = 0.09
+    
 
 
     # INITIAL DATA LEFT AND RIGHT STATES 
+    case_num:  int = 1  # case number for labeling, can be used to switch between preset states
     # Left state (x < 0)
-    rho_L: float = 3.0
-    u_L:   float = 3.0
-    v_L:   float = 0
+    rho_L: float = 0.5
+    u_L:   float = 0.5
+    v_L:   float = 0.1
 
     # Right state (x > 0)
-    rho_R: float = 10.0
-    u_R:   float = 10.0
-    v_R:   float = 0.5
+    rho_R: float = 1.0
+    u_R:   float = 1.5
+    v_R:   float = 0.4
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots
     line_width_start: float = 0.25   # initial plot line width
-    line_width_increment: float = 0.05  # increase per iteration (for overlay plots)
+    line_width_increment: float = 0.01  # increase per iteration (for overlay plots)
     A_const: float = 1.0  # constant A for compute_A, can be modified for different cases
 
 
     def compute_A(self, v, p: np.ndarray) -> np.ndarray:
         
         return 1/ ((1 - v)**(p))
-        #return self.A_const * np.ones_like(rho)  # A is constant for all rho, can be modified as needed
+        #return self.A_const * np.ones_like(v)
 
-
-    def case_number(self) -> int:
-        """
-        placeholder for now until we label all the cases
-        """
-        if self.alpha > 0:
-            if self.u_L >= 0:
-                return 1   # expand as needed
-            else:
-                return 2
-        elif self.alpha == 0:
-            return 3
-        else:
-            return 4
 
 
 

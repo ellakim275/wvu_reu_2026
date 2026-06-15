@@ -12,7 +12,8 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
    
     rho, u, v = get_primitives(state.U)
     lambda_max = systemeigen(u, rho, cfg.alpha, cfg.compute_A(v, rho))
-    dt = cfg.CFL / lambda_max
+    dt = cfg.CFL * cfg.dx / lambda_max
+    dx = cfg.dx
         
     state.t += dt 
     state.iters += 1
@@ -21,8 +22,7 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
     F = flux(state.U, cfg)
     F_left = np.concatenate([F[:, :1], F[:, :-1]], axis=1)
     
-    ##maybe change this update method but this is what was in the matlab code 
-    state.U = 0.5 * (U_left + state.U) + (0.5 * dt * (F_left - F)) #check the minus sign here 
+    state.U = 0.5 * (U_left + state.U) + (0.5 * (dt / dx)) * (F_left - F) #check the minus sign here 
     
     # extend U by repeating rightmost column
     state.U = np.concatenate([state.U, state.U[:, -1:]], axis=1)

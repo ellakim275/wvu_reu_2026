@@ -6,17 +6,18 @@ import os
 
 from config import SolverConfig, initialize, get_primitives
 from laxfried import lax_friedrichs
-from phase_plot_3d import phase_plot_3d   # added at top
+from phase_plot_3d import phase_plot_3d  
 
-
-# params
-NUM_INNER = 200# how many times lax_friedrichs is called (overlay curves)
-PLOT_EVERY = 10       # plot a curve every this many inner iterations
-OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 cfg   = SolverConfig()
 state = initialize(cfg)
+
+# params
+NUM_INNER = cfg.total_steps # how many times lax_friedrichs is called (overlay curves)
+PLOT_EVERY = 1000       # plot a curve every this many inner iterations
+OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 # Figure with 3 subplots one per primitive variable
 fig, (ax_rho, ax_u, ax_v) = plt.subplots(3, 1, figsize=(8, 9))
@@ -41,7 +42,7 @@ for i in range(1, NUM_INNER + 1):
 ax_rho.set_ylabel(r'$\rho$', fontsize=14)
 ax_rho.set_xlabel(r'$x/t$',  fontsize=14)
 ax_rho.set_title(
-    f"Case {cfg.case_number()}:  "
+    f"Case {cfg.case_num}:  "
     r"$\alpha$ = " + f"{cfg.alpha},  "
     f"Steps = {state.iters},  "
     f"t = {state.t:.2f}",
@@ -61,7 +62,7 @@ ax_v.set_xlabel(
 )
 # Save
 fname = (
-    f"Case{cfg.case_number()}"
+    f"Case{cfg.case_num}"
     f"_alpha{cfg.alpha}"
     f"_L({cfg.rho_L},{cfg.u_L},{cfg.v_L})"
     f"_R({cfg.rho_R},{cfg.u_R},{cfg.v_R})"
@@ -71,6 +72,9 @@ out_path = os.path.join(OUTPUT_DIR, fname)
 fig.savefig(out_path, dpi=150, bbox_inches='tight')
 print(f"Saved: {out_path}")
 
-phase_plot_3d(states=[state], cfg=cfg,       # added at bottom
-    save_html=os.path.join(OUTPUT_DIR, fname + "_3d.html"))
 
+phase_plot_3d(
+    states=[state],
+    cfg=cfg,
+    save_html=os.path.join(OUTPUT_DIR, fname + "_3d.html"),
+)

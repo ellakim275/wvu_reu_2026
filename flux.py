@@ -4,7 +4,7 @@ from config import get_primitives
 # flux function for the system, used in the lax-friedrichs update step
 def flux(U, cfg): 
     rho, u, v, = get_primitives(U)
-    A = cfg.compute_A(v, rho)
+    A = cfg.compute_A(v, cfg.p)
     f1 = rho * u
     f2 = rho * (u**2) - (A / (rho ** cfg.alpha)) #this is the problem function that is making u blow up 
     f3 = rho * u * v
