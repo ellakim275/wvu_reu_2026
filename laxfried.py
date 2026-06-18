@@ -11,7 +11,7 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
         state.started = True
    
     rho, u, v = get_primitives(state.U)
-    lambda_max = systemeigen(u, rho, cfg.alpha, cfg.compute_A(v, rho))
+    lambda_max = systemeigen(u, rho, cfg.alpha, cfg.compute_A(v, cfg.p))
     dt = cfg.CFL * cfg.dx / lambda_max
     dx = cfg.dx
         

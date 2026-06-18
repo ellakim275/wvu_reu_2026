@@ -1,6 +1,6 @@
 # cases/case_solver.py
 
-from cases import r1_cd_r3, r1_cd_s3, s1_cd_r3, s1_cd_s3, delta
+from cases import r1_cd_r3, r1_cd_s3, s1_cd_r3, s1_cd_s3, delta, testing 
 
 _CASE_MAP = {
     1: r1_cd_r3,
@@ -8,7 +8,8 @@ _CASE_MAP = {
     3: s1_cd_r3,
     4: s1_cd_s3,
     5: delta,
-    6: delta,   
+    6: delta,
+    7: testing    
 }
 
 def get_intermediates(cfg):

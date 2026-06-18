@@ -18,16 +18,16 @@ class SolverConfig:
 
 
     # INITIAL DATA LEFT AND RIGHT STATES 
-    case_num:  int = 1  # case number for labeling, can be used to switch between preset states
+    case_num:  int = 7  # case number for labeling, can be used to switch between preset states
     # Left state (x < 0)
-    rho_L: float = 10.0
-    u_L:   float = 7.0
-    v_L:   float = -3.5
+    rho_L: float = 0.27
+    u_L:   float = 1.36
+    v_L:   float = 0
 
     # Right state (x > 0)
-    rho_R: float = 5.0
-    u_R:   float = 6.714
-    v_R:   float = -3.0
+    rho_R: float = 1.0
+    u_R:   float = -2
+    v_R:   float = 0.5
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots

@@ -11,32 +11,71 @@ Call it from main.py after the solver loop.
 import plotly.graph_objects as go
 import numpy as np
 from config import SolverConfig, SolverState, get_primitives
-from cases.case_solver import get_intermediates, get_wave_curves
+from cases import testing as curves_only
 
 
-def phase_plot_3d(states, cfg, save_html=None):
+def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
+    """
+    curve_mode controls how the R1/S1/R3/S3 wave curves (all anchored at L)
+    are rendered:
+        'surface' - translucent extruded ribbons spanning v_L to ~v_R (default)
+        'line'    - flat dashed lines at v = v_L (the original style)
+        'both'    - both surfaces and lines
+        'none'    - skip the wave curves entirely
+    """
     fig = go.Figure()
 
     rho_min   = 0.01                              # always start near zero
-    rho_max   = max(cfg.rho_L, cfg.rho_R) * 1.5  # this part is fine
+    rho_max   = max(cfg.rho_L, cfg.rho_R, 2.0) * 1.5  # ensure curves/surfaces extend past rho=2
     rho_range = np.linspace(rho_min, rho_max, 400)
 
-    # get intermediates and curves for whatever case this is
-    # commented out for now to check boundary cases and over/undercompressive regions
-    """intermediates = get_intermediates(cfg)
-    curves        = get_wave_curves(cfg, intermediates, rho_range)"""
+    # get all four wave curves (R1, S1, R3, S3) anchored at L
+    intermediates = curves_only.compute_intermediates(cfg)
+    curves = curves_only.wave_curves(cfg, intermediates, rho_range)
 
-    """# plot all curves generically
-    for c in curves:
-        fig.add_trace(go.Scatter3d(
-            x=c['rho'], y=c['u'], z=c['v'],
-            mode='lines',
-            line=dict(color=c['color'], width=3, dash='dash'),
-            name=c['name']
-        ))
+    if curve_mode not in ('surface', 'line', 'both', 'none'):
+        raise ValueError(f"curve_mode must be one of 'surface', 'line', 'both', 'none' (got {curve_mode!r})")
+
+    if curve_mode in ('surface', 'both'):
+        # extrude each (rho, u) curve along v from v_L to a bit past v_R as a
+        # semi-transparent surface
+        v_span = cfg.v_R - cfg.v_L
+        v_end = cfg.v_R + 0.10 * v_span   # extend 10% further than v_R, away from v_L
+        v_sweep = np.linspace(cfg.v_L, v_end, 2)   # 2 points is enough for a flat ruled surface
+
+        for c in curves:
+            n_rho = len(c['rho'])
+            if n_rho == 0:
+                continue
+            # build (n_rho, 2) grids: rho/u repeat across the v sweep, v varies along columns
+            rho_grid = np.tile(c['rho'].reshape(-1, 1), (1, len(v_sweep)))
+            u_grid   = np.tile(c['u'].reshape(-1, 1), (1, len(v_sweep)))
+            v_grid   = np.tile(v_sweep.reshape(1, -1), (n_rho, 1))
+
+            fig.add_trace(go.Surface(
+                x=rho_grid, y=u_grid, z=v_grid,
+                surfacecolor=np.zeros_like(rho_grid),
+                colorscale=[[0, c['color']], [1, c['color']]],
+                showscale=False,
+                opacity=0.4,
+                name=c['name'],
+                showlegend=True,
+            ))
+
+    if curve_mode in ('line', 'both'):
+        # flat dashed line at v = v_L for each curve (the original style)
+        for c in curves:
+            if len(c['rho']) == 0:
+                continue
+            fig.add_trace(go.Scatter3d(
+                x=c['rho'], y=c['u'], z=c['v'],
+                mode='lines',
+                line=dict(color=c['color'], width=3, dash='dash'),
+                name=c['name']
+            ))
 
     # plot M1 and M2 generically
-    for label, key_rho, key_u, key_v, color in [
+    """for label, key_rho, key_u, key_v, color in [
         ('M1', 'rho_M1', 'u_M1', 'v_M1', 'orange'),
         ('M2', 'rho_M2', 'u_M2', 'v_M2', 'green'),
     ]:
@@ -50,6 +89,8 @@ def phase_plot_3d(states, cfg, save_html=None):
                 text=[label], textposition='top center',
                 name=f'Intermediate state {label}'
             ))"""
+
+    
 
     # --- final converged solution path (black) ---
     final = states[-1]
@@ -65,7 +106,7 @@ def phase_plot_3d(states, cfg, save_html=None):
     fig.add_trace(go.Scatter3d(
         x=[cfg.rho_L], y=[cfg.u_L], z=[cfg.v_L],
         mode='markers+text',
-        marker=dict(size=8, color='blue'),
+        marker=dict(size=4, color='blue'),
         text=['L'], textposition='top center',
         name='Left state L'
     ))
@@ -74,7 +115,7 @@ def phase_plot_3d(states, cfg, save_html=None):
     fig.add_trace(go.Scatter3d(
         x=[cfg.rho_R], y=[cfg.u_R], z=[cfg.v_R],
         mode='markers+text',
-        marker=dict(size=8, color='red'),
+        marker=dict(size=4, color='red'),
         text=['R'], textposition='top center',
         name='Right state R'
     ))
@@ -92,8 +133,8 @@ def phase_plot_3d(states, cfg, save_html=None):
             xaxis_title='ρ',
             yaxis_title='u',
             zaxis_title='v',
-            xaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
-            yaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
+            xaxis=dict(backgroundcolor='white', gridcolor='lightgray', range=[0, 2]),
+            yaxis=dict(backgroundcolor='white', gridcolor='lightgray', range=[-3, 3]),
             zaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
         ),
         legend=dict(x=0.01, y=0.99),
