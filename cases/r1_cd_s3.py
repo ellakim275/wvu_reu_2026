@@ -60,8 +60,8 @@ def wave_curves(cfg, intermediates: dict, rho_range: np.ndarray) -> list:
     exp   = (a + 1) / 2.0
 
     # R1  
-    rho_r1   = rho_range[rho_range < rho_L]
-    u_r1  = u_L + coeff * (2.0/(a+1)) * (1.0/rho_L**exp - 1.0/rho_r1**exp)
+    rho_r1 = rho_range[rho_range < rho_L]
+    u_r1   = u_L + coeff * (2.0/(a+1)) * (1.0/rho_r1**exp - 1.0/rho_L**exp)
 
     curves.append(dict(
         rho=rho_r1, u=u_r1,

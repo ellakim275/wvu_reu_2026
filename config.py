@@ -12,22 +12,22 @@ class SolverConfig:
     renorm_interval: int = 100   # trim flat regions every this many steps
     total_steps: int = 20000  # total number of time steps per laxfried call
 
-    alpha: float = 0.5 # KEEP AS 1/2 FOR NOW 
-    p: float = 0.09
+    alpha: float = 0.46 # KEEP AS 1/2 FOR NOW 
+    p: float = 0.314
     
 
 
     # INITIAL DATA LEFT AND RIGHT STATES 
-    case_num:  int = 3  # case number for labeling, can be used to switch between preset states
+    case_num:  int = 1  # case number for labeling, can be used to switch between preset states
     # Left state (x < 0)
-    rho_L: float = 0.5
-    u_L:   float = 1.0
-    v_L:   float = 0.1
+    rho_L: float = 10.0
+    u_L:   float = 7.0
+    v_L:   float = -3.5
 
     # Right state (x > 0)
-    rho_R: float = 0.688
-    u_R:   float = 1.0
-    v_R:   float = 0.3
+    rho_R: float = 5.0
+    u_R:   float = 6.714
+    v_R:   float = -3.0
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots

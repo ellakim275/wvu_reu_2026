@@ -13,31 +13,6 @@ import numpy as np
 from config import SolverConfig, SolverState, get_primitives
 from cases.case_solver import get_intermediates, get_wave_curves
 
-#meow old function but want to save for now for reference 
-"""def _wave_curves(cfg: SolverConfig, rho_range: np.ndarray):
-    a     = cfg.alpha
-    rho_L = cfg.rho_L
-    u_L   = cfg.u_L
-
-    A_L = float(cfg.compute_A(
-        np.array([cfg.v_L]),
-        np.array([cfg.p])
-    )[0])
-
-    coeff = np.sqrt(a * A_L)
-    exp   = (a + 1) / 2.0
-
-    # R1 rarefaction — rho < rho_L, u increases as rho decreases
-    rho_r1   = rho_range[rho_range < rho_L]
-    u_wave1  = u_L + coeff * (2.0/(a+1)) * (1.0/rho_L**exp - 1.0/rho_r1**exp)
-
-    # R3 rarefaction — rho > rho_L, u increases as rho increases  
-    # from page 79 inverse R3 anchored at L:
-    # u = u_L - coeff * (2/(a+1)) * (1/rho_L^exp - 1/rho^exp)
-    rho_r3   = rho_range[rho_range > rho_L]
-    u_wave3  = u_L - coeff * (2.0/(a+1)) * (1.0/rho_L**exp - 1.0/rho_r3**exp)
-
-    return rho_r1, u_wave1, rho_r3, u_wave3"""
 
 def phase_plot_3d(states, cfg, save_html=None):
     fig = go.Figure()
@@ -47,10 +22,11 @@ def phase_plot_3d(states, cfg, save_html=None):
     rho_range = np.linspace(rho_min, rho_max, 400)
 
     # get intermediates and curves for whatever case this is
-    intermediates = get_intermediates(cfg)
-    curves        = get_wave_curves(cfg, intermediates, rho_range)
+    # commented out for now to check boundary cases and over/undercompressive regions
+    """intermediates = get_intermediates(cfg)
+    curves        = get_wave_curves(cfg, intermediates, rho_range)"""
 
-    # plot all curves generically
+    """# plot all curves generically
     for c in curves:
         fig.add_trace(go.Scatter3d(
             x=c['rho'], y=c['u'], z=c['v'],
@@ -73,7 +49,7 @@ def phase_plot_3d(states, cfg, save_html=None):
                 marker=dict(size=8, color=color),
                 text=[label], textposition='top center',
                 name=f'Intermediate state {label}'
-            ))
+            ))"""
 
     # --- final converged solution path (black) ---
     final = states[-1]
