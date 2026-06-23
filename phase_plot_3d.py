@@ -40,7 +40,13 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
         # extrude each (rho, u) curve along v from v_L to a bit past v_R as a
         # semi-transparent surface
         v_span = cfg.v_R - cfg.v_L
-        v_end = cfg.v_R + 0.10 * v_span   # extend 10% further than v_R, away from v_L
+        if abs(v_span) < 1e-9:
+            # v_L == v_R (or nearly so): there's no real span to extend past,
+            # so fall back to a small fixed thickness instead of a degenerate
+            # zero-width ribbon (which Plotly renders as nothing at all).
+            v_end = cfg.v_L + 0.05 * (abs(cfg.v_L) + 1.0)
+        else:
+            v_end = cfg.v_R + 0.10 * v_span   # extend 10% further than v_R, away from v_L
         v_sweep = np.linspace(cfg.v_L, v_end, 2)   # 2 points is enough for a flat ruled surface
 
         for c in curves:
@@ -133,8 +139,8 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
             xaxis_title='ρ',
             yaxis_title='u',
             zaxis_title='v',
-            xaxis=dict(backgroundcolor='white', gridcolor='lightgray', range=[0, 2]),
-            yaxis=dict(backgroundcolor='white', gridcolor='lightgray', range=[-3, 3]),
+            xaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
+            yaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
             zaxis=dict(backgroundcolor='white', gridcolor='lightgray'),
         ),
         legend=dict(x=0.01, y=0.99),
