@@ -1,4 +1,4 @@
-from config import SolverConfig, SolverState, get_primitives
+from config import get_primitives
 from systemeigen import systemeigen
 from flux import flux 
 from renorm import renorm
@@ -6,7 +6,7 @@ import numpy as np
 
 # lax-friedrichs method (finite volume method) to update the solution at each time step 
 
-def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
+def lax_friedrichs(state, cfg):
     if not state.started:
         state.started = True
    
@@ -22,7 +22,7 @@ def lax_friedrichs(state: SolverState, cfg: SolverConfig) -> SolverState:
     F = flux(state.U, cfg)
     F_left = np.concatenate([F[:, :1], F[:, :-1]], axis=1)
     
-    state.U = 0.5 * (U_left + state.U) + (0.5 * (dt / dx)) * (F_left - F) #check the minus sign here 
+    state.U = 0.5 * (U_left + state.U) + (0.5 * (dt / dx)) * (F_left - F) 
     
     # extend U by repeating rightmost column
     state.U = np.concatenate([state.U, state.U[:, -1:]], axis=1)

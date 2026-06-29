@@ -9,9 +9,9 @@ from laxfried import lax_friedrichs
 from phase_plot_3d import phase_plot_3d
 
 
-def build_filename(cfg: SolverConfig) -> str:
+def build_filename(cfg: SolverConfig):
     """
-    Builds the descriptive base filename (no extension) used for both
+    Builds the descriptive base filename used for both
     the x/t plot and the 3d phase plot, so a single run's outputs are
     identifiable by their right state.
     """
@@ -24,7 +24,7 @@ def build_filename(cfg: SolverConfig) -> str:
 
 
 def run_simulation(cfg: SolverConfig, xt_dir: str, phase_dir: str,
-                    plot_every: int = 1000, curve_mode: str = 'surface') -> dict:
+                    plot_every: int = 1000, curve_mode: str = 'surface'):
     """
     Runs the Lax-Friedrichs solver for cfg.total_steps steps, saving:
       - an x/t overlay plot (rho, u, v) into xt_dir

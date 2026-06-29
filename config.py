@@ -12,49 +12,43 @@ class SolverConfig:
     renorm_interval: int = 100   # trim flat regions every this many steps
     total_steps: int = 20000  # total number of time steps per laxfried call
 
-    alpha: float = 0.66 
+    alpha: float = 1
     p: float = 0.146
-    
 
 
     # INITIAL DATA LEFT AND RIGHT STATES 
-    case_num:  int = 1  # case number for labeling, can be used to switch between preset states
-    # Left state (x < 0)
+    case_num:  int = 1  # case number for labeling
+    # Left state
     rho_L: float = 4
     u_L:   float = 0.7
-    v_L:   float = -1.9
+    v_L:   float = 0.96
 
-    # Right state (x > 0)
-    rho_R: float = 3.6
-    u_R:   float = -.024
-    v_R:   float = 0.99
+    # Right state
+    rho_R: float = 0.75
+    u_R:   float = -0.5
+    v_R:   float = -200
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots
     line_width_start: float = 0.25   # initial plot line width
     line_width_increment: float = 0.01  # increase per iteration (for overlay plots)
-    A_const: float = 1.0  # constant A for compute_A, can be modified for different cases
 
-
-    def compute_A(self, v, p: np.ndarray) -> np.ndarray:
+    def compute_A(self, v, p: np.ndarray):
         
         return 1/ ((1 - v)**(p))
-        #return self.A_const * np.ones_like(v)
-
 
 
 
 # solver state, carries all evolving arrays through the time-stepping loop
-
 @dataclass
 class SolverState:
     """
     Holds the current numerical solution and grid metadata.
     All arrays have shape (lx,) for 1D scalar fields.
     The full conserved state is U with shape (3, lx):
-        U[0] = ρ
-        U[1] = ρu
-        U[2] = ρv
+        U[0] = rho
+        U[1] = rho*u
+        U[2] = rho*v
     """
 
     # Conserved variable array, shape (3, lx)
@@ -87,18 +81,11 @@ class SolverState:
 def initialize(cfg: SolverConfig) -> SolverState:
     """
     Builds the initial SolverState from a SolverConfig.
-    Equivalent to the initvars + setup block in autogen.m.
 
     Conserved variables initialized as:
-        U[0] = ρ  — left state everywhere, right state from cell 3 onward
-        U[1] = ρu — same pattern
-        U[2] = ρv — same pattern
-
-    This mirrors the MATLAB initialization:
-        p = pL * ones(1, lx0)
-        for i = 3:lx0
-            p(i) = p(i) + (pR - pL)
-        end
+        U[0] = rho 
+        U[1] = rho*u 
+        U[2] = rho*v
     """
     lx = cfg.lx0
 
@@ -153,10 +140,7 @@ def get_primitives(U: np.ndarray):
     """
     Recover primitive variables from conserved variables.
     Returns (rho, u, v) as 1D arrays of length lx.
-
-    Equivalent to:
-        u = q ./ p   (MATLAB)
-    but now for all three primitives.
+    
     """
     rho = U[0]
     u   = U[1] / U[0]   # rho * u / rho

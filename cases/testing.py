@@ -18,7 +18,7 @@ case -- compute_intermediates is a no-op here since no M1/M2 matching is done.
 import numpy as np
 
 
-def compute_intermediates(cfg) -> dict:
+def compute_intermediates(cfg):
     """
     No-op: this module does not solve for M1/M2. Returns an empty dict so
     callers expecting a dict (e.g. case_solver.get_intermediates) don't break.
@@ -26,7 +26,7 @@ def compute_intermediates(cfg) -> dict:
     return {}
 
 
-def wave_curves(cfg, intermediates: dict, rho_range: np.ndarray) -> list:
+def wave_curves(cfg, intermediates, rho_range):
     """
     Returns all four wave-curve branches (R1, S1, R3, S3), all anchored
     at the left state (rho_L, u_L, v_L).

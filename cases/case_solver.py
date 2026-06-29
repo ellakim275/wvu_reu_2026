@@ -1,4 +1,3 @@
-# cases/case_solver.py
 
 from cases import r1_cd_r3, r1_cd_s3, s1_cd_r3, s1_cd_s3, delta, testing 
 

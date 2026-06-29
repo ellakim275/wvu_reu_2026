@@ -9,15 +9,6 @@ Usage:
     python sweep.py --var rho_R --start 3.0 --end 8.0 --steps 10
     python sweep.py --var u_R   --start 5.0 --end 9.0 --steps 15
 
-Output layout:
-    output/sweep_<var>_<start>_<end>/
-        xt_plots/
-            Case1_alpha0.46_L(...)_R(...).png
-            ...
-        phase_plots_3d/
-            Case1_alpha0.46_L(...)_R(...)_3d.html
-            ...
-
 Everything in SolverConfig other than the swept variable is left at its
 dataclass default. --steps is the total number of runs (inclusive of both
 start and end), i.e. values = np.linspace(start, end, steps).
