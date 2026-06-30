@@ -21,12 +21,12 @@ class SolverConfig:
     # Left state
     rho_L: float = 4
     u_L:   float = 0.7
-    v_L:   float = -1.9
+    v_L:   float = 0.96
 
     # Right state
-    rho_R: float = 5.0
-    u_R:   float = -5.0
-    v_R:   float = -5.0
+    rho_R: float = 0.75
+    u_R:   float = -0.5
+    v_R:   float = -200
 
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots
