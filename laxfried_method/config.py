@@ -8,11 +8,11 @@ class SolverConfig:
     # grid parameters
     dx: float = 0.5          # spatial step size
     lx0: int = 4             # initial number of cells
-    CFL: float = 0.8       # Courant number, must be < 1 for stability
+    CFL: float = 0.8      # Courant number, must be < 1 for stability
     renorm_interval: int = 100   # trim flat regions every this many steps
     total_steps: int = 20000  # total number of time steps per laxfried call
 
-    alpha: float = 1
+    alpha: float = 0.4
     p: float = 0.146
 
 
@@ -21,13 +21,13 @@ class SolverConfig:
     # Left state
     rho_L: float = 4
     u_L:   float = 0.7
-    v_L:   float = 0.96
-
+    v_L:   float = -1.9
     # Right state
-    rho_R: float = 0.75
-    u_R:   float = -0.5
-    v_R:   float = -200
+    rho_R = 3
+    u_R = 2
+    v_R = 0.99999
 
+    
     # plotting 
     t_graph: float = 1.0     # reference time used in locus/phase plane plots
     line_width_start: float = 0.25   # initial plot line width
@@ -36,8 +36,6 @@ class SolverConfig:
     def compute_A(self, v, p: np.ndarray):
         
         return 1/ ((1 - v)**(p))
-
-
 
 # solver state, carries all evolving arrays through the time-stepping loop
 @dataclass

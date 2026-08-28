@@ -1,18 +1,9 @@
-"""
-phase_plot_3d.py
-================
-3D phase portrait of the Riemann solution in (rho, u, v) space,
-with 1-wave and 3-wave rarefaction curves through the left state.
-
-Only one public function: phase_plot_3d()
-Call it from main.py after the solver loop.
-"""
-
 import plotly.graph_objects as go
 import numpy as np
 from config import SolverConfig, SolverState, get_primitives
-from cases import testing as curves_only
+import plot_curves_helper as curves_only
 
+#3D phase portrait of the Riemann solution in (rho, u, v) space, with 1-wave and 3-wave rarefaction curves through the left state.
 
 def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
     """
@@ -30,24 +21,19 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
     rho_range = np.linspace(rho_min, rho_max, 400)
 
     # get all four wave curves (R1, S1, R3, S3) anchored at L
-    intermediates = curves_only.compute_intermediates(cfg)
-    curves = curves_only.wave_curves(cfg, intermediates, rho_range)
+    curves = curves_only.wave_curves(cfg, rho_range)
 
     if curve_mode not in ('surface', 'line', 'both', 'none'):
         raise ValueError(f"curve_mode must be one of 'surface', 'line', 'both', 'none' (got {curve_mode!r})")
 
     if curve_mode in ('surface', 'both'):
-        # extrude each (rho, u) curve along v from v_L to a bit past v_R as a
-        # semi-transparent surface
+        # extrude each (rho, u) curve along v from v_L to a bit past v_R as a semi-transparent surface
         v_span = cfg.v_R - cfg.v_L
         if abs(v_span) < 1e-9:
-            # v_L == v_R (or nearly so): there's no real span to extend past,
-            # so fall back to a small fixed thickness instead of a degenerate
-            # zero-width ribbon (which Plotly renders as nothing at all).
             v_end = cfg.v_L + 0.05 * (abs(cfg.v_L) + 1.0)
         else:
-            v_end = cfg.v_R + 0.10 * v_span   # extend 10% further than v_R, away from v_L
-        v_sweep = np.linspace(cfg.v_L, v_end, 2)   # 2 points is enough for a flat ruled surface
+            v_end = cfg.v_R + 0.10 * v_span  
+        v_sweep = np.linspace(cfg.v_L, v_end, 2)   
 
         for c in curves:
             n_rho = len(c['rho'])
@@ -69,7 +55,7 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
             ))
 
     if curve_mode in ('line', 'both'):
-        # flat dashed line at v = v_L for each curve (the original style)
+        # flat dashed line at v = v_L for each curve 
         for c in curves:
             if len(c['rho']) == 0:
                 continue
@@ -79,26 +65,9 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
                 line=dict(color=c['color'], width=3, dash='dash'),
                 name=c['name']
             ))
-
-    # plot M1 and M2 generically
-    """for label, key_rho, key_u, key_v, color in [
-        ('M1', 'rho_M1', 'u_M1', 'v_M1', 'orange'),
-        ('M2', 'rho_M2', 'u_M2', 'v_M2', 'green'),
-    ]:
-        if key_rho in intermediates:
-            fig.add_trace(go.Scatter3d(
-                x=[intermediates[key_rho]],
-                y=[intermediates[key_u]],
-                z=[intermediates[key_v]],
-                mode='markers+text',
-                marker=dict(size=8, color=color),
-                text=[label], textposition='top center',
-                name=f'Intermediate state {label}'
-            ))"""
-
     
 
-    # --- final converged solution path (black) ---
+    # final converged solution path (black)
     final = states[-1]
     rho, u, v = get_primitives(final.U)
     fig.add_trace(go.Scatter3d(
@@ -108,7 +77,7 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
         name='Solution path'
     ))
 
-    # --- left state L (blue dot) ---
+    #  left state L (blue dot)
     fig.add_trace(go.Scatter3d(
         x=[cfg.rho_L], y=[cfg.u_L], z=[cfg.v_L],
         mode='markers+text',
@@ -117,7 +86,7 @@ def phase_plot_3d(states, cfg, save_html=None, curve_mode='surface'):
         name='Left state L'
     ))
 
-    # --- right state R (red dot) ---
+    # right state R (red dot)
     fig.add_trace(go.Scatter3d(
         x=[cfg.rho_R], y=[cfg.u_R], z=[cfg.v_R],
         mode='markers+text',

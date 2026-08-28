@@ -7,13 +7,21 @@ own window.
 Produces two kinds of figures:
   - Per-state plots: one field at a time (left_state/*.png, right_state/*.png)
   - Combined plots: both fields overlaid on the same axes (combined_*.png)
+
+On top of the vector field, the (rho, u) panels also get the two analytic
+wave curves through that panel's state:
+  - S curve: the shock (Rankine-Hugoniot) branch
+  - R curve: the rarefaction branch (integrated characteristic speed)
+Each is a single continuous curve over rho > 0, built from two piecewise
+closed-form expressions (one valid for 0 < x < rho_s, one for x > rho_s)
+that agree at x = rho_s.
 """
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import config as cfg
-from model import vector_field, shock_speed
+from model import vector_field, shock_speed, A
 
 NAMES = ["rho", "u", "v"]
 LABELS = {"rho": r"$\rho$", "u": "$u$", "v": "$v$"}
@@ -82,6 +90,64 @@ def plot_field(ax, var_pair, states, s, title=None):
         ax.legend(loc="best")
 
 
+def shock_curve(x, rho_s, u_s, v_s, a):
+    """
+    Shock (Rankine-Hugoniot) branch through (rho_s, u_s, v_s):
+
+        u = u_s - sqrt( A(v_s) * (rho_s - x)/(rho_s*x) * (1/x^a - 1/rho_s^a) )
+
+    This single expression is real-valued and continuous for all x > 0
+    (both x < rho_s and x > rho_s give a nonnegative radicand), so no
+    piecewise split is needed here.
+    """
+    x = np.asarray(x, dtype=float)
+    Av = A(v_s)
+    inner = Av * (rho_s - x) / (rho_s * x) * (1.0 / x**a - 1.0 / rho_s**a)
+    inner = np.where(inner < 0, np.nan, inner)  # guard against tiny negative roundoff
+    return u_s - np.sqrt(inner)
+
+
+def rarefaction_curve(x, rho_s, u_s, v_s, a):
+    """
+    Rarefaction branch through (rho_s, u_s, v_s), i.e. the integrated
+    characteristic speed. The closed form flips sign across x = rho_s:
+
+        x > rho_s:      u = sqrt(a*A(v_s)) * ( -2/(a+1)*(x^-(a+1)/2 - rho_s^-(a+1)/2) + u_s/sqrt(a*A(v_s)) )
+        0 < x < rho_s:  u = sqrt(a*A(v_s)) * (  2/(a+1)*(x^-(a+1)/2 - rho_s^-(a+1)/2) + u_s/sqrt(a*A(v_s)) )
+
+    Both pieces agree at x = rho_s (bracket -> 0), so this stitches into
+    one continuous curve over all x > 0.
+    """
+    x = np.asarray(x, dtype=float)
+    Av = A(v_s)
+    pref = np.sqrt(a * Av)
+    sign = np.where(x > rho_s, -1.0, 1.0)
+    bracket = (2.0 / (a + 1.0)) * (x**(-(a + 1.0) / 2.0) - rho_s**(-(a + 1.0) / 2.0))
+    return pref * (sign * bracket + u_s / pref)
+
+
+def plot_wave_curves(ax, rho_s, u_s, v_s, color, a=None, n=400):
+    """
+    Overlay the shock curve (solid) and rarefaction curve (dashed) through
+    ONE state onto an existing (rho, u) axes. Which state's curves you get
+    is entirely determined by the (rho_s, u_s, v_s) you pass in -- callers
+    below pass the Left state's values on Left panels and the Right
+    state's values on Right panels.
+    """
+    if a is None:
+        a = cfg.a  # <-- rename to match the actual exponent name in config.py if different
+
+    xmin, xmax = cfg.RANGES["rho"]
+    xmin = max(xmin, 1e-6)  # avoid the x = 0 singularity
+    x = np.linspace(xmin, xmax, n)
+
+    u_shock = shock_curve(x, rho_s, u_s, v_s, a)
+    u_raref = rarefaction_curve(x, rho_s, u_s, v_s, a)
+
+    ax.plot(x, u_shock, "-", color=color, linewidth=1.5, label="S curve")
+    ax.plot(x, u_raref, "--", color=color, linewidth=1.5, label="R curve")
+
+
 def main():
     s = shock_speed()
     left = {"rho": cfg.rho_L, "u": cfg.u_L, "v": cfg.v_L}
@@ -89,13 +155,20 @@ def main():
     pairs = [("rho", "u"), ("rho", "v"), ("u", "v")]
 
     # per-state plots: one field at a time, only that state's own point shown
-    for state_name, anchor, color in [("Left", left, "tab:blue"), ("Right", right, "tab:red")]:
+    for state_name, anchor, color in [("Left", left, "#999999"), ("Right", right, "black")]:
         out_dir = cfg.state_dir(state_name)
         os.makedirs(out_dir, exist_ok=True)
         for pair in pairs:
             fig, ax = plt.subplots(figsize=(6, 6))
             title = f"{state_name} state: {LABELS[pair[0]]}-{LABELS[pair[1]]} plane"
             plot_field(ax, pair, [{"label": state_name, "anchor": anchor, "color": color}], s, title=title)
+
+            # wave curves only make sense in the (rho, u) plane; use THIS
+            # panel's own state (Left panel -> Left curves, Right -> Right)
+            if pair == ("rho", "u"):
+                plot_wave_curves(ax, anchor["rho"], anchor["u"], anchor["v"], color)
+                ax.legend(loc="best")
+
             fname = os.path.join(out_dir, f"{pair[0]}_{pair[1]}.png")
             fig.tight_layout()
             fig.savefig(fname, dpi=150)
@@ -106,8 +179,8 @@ def main():
     # marked for context -- 2 (left field / right field) x 3 (variable pairs)
     # = 6 plots total.
     state_info = {
-        "Left": {"label": "Left", "anchor": left, "color": "tab:blue"},
-        "Right": {"label": "Right", "anchor": right, "color": "tab:red"},
+    "Left": {"label": "Left", "anchor": left, "color": "#999999"},
+    "Right": {"label": "Right", "anchor": right, "color": "black"},
     }
     for pair in pairs:
         for main_name in ["Left", "Right"]:
@@ -118,9 +191,16 @@ def main():
             fig, ax = plt.subplots(figsize=(8, 7))
             title = (
                 f"{main_name} state field: {LABELS[pair[0]]}-{LABELS[pair[1]]} view "
-                f"(both states shown)"
             )
             plot_field(ax, pair, [main_entry, other_entry], s, title=title)
+
+            # again, wave curves use whichever state is the "main" field
+            # for this panel (main_name), not the reference-only state
+            if pair == ("rho", "u"):
+                m = state_info[main_name]
+                plot_wave_curves(ax, m["anchor"]["rho"], m["anchor"]["u"], m["anchor"]["v"], m["color"])
+                ax.legend(loc="best")
+
             fname = f"combined_{main_name.lower()}_{pair[0]}_{pair[1]}.png"
             fig.tight_layout()
             fig.savefig(fname, dpi=150)

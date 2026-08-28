@@ -29,13 +29,6 @@ def run_simulation(cfg: SolverConfig, xt_dir: str, phase_dir: str,
     Runs the Lax-Friedrichs solver for cfg.total_steps steps, saving:
       - an x/t overlay plot (rho, u, v) into xt_dir
       - a 3D phase portrait html into phase_dir
-
-    curve_mode controls how the R1/S1/R3/S3 wave curves are drawn in the
-    3D phase portrait: 'surface' (translucent extruded ribbons, default),
-    'line' (flat dashed lines through L), 'both', or 'none'.
-
-    Returns a dict with the paths written and the final state, in case
-    a caller wants to inspect/aggregate results.
     """
     os.makedirs(xt_dir, exist_ok=True)
     os.makedirs(phase_dir, exist_ok=True)
@@ -67,7 +60,7 @@ def run_simulation(cfg: SolverConfig, xt_dir: str, phase_dir: str,
     ax_rho.set_ylabel(r'$\rho$', fontsize=14)
     ax_rho.set_xlabel(r'$x/t$',  fontsize=14)
     ax_rho.set_title(
-        f"Case {cfg.case_num}:  "
+        f"Case 2:  "
         r"$\alpha$ = " + f"{cfg.alpha},  "
         f"Steps = {state.iters},  "
         f"t = {state.t:.2f}",

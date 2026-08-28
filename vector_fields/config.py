@@ -19,13 +19,12 @@ rho_L = 4.0
 u_L = 0.7
 v_L = -1.9
 
-rho_R = 5.0
-u_R = -5.0
-v_R = -5.0
+rho_R = 4.2
+u_R = 0.15
+v_R = 0.99999999999
 
-
-RHO_MIN, RHO_MAX = 0.01, 15.0
-U_MIN, U_MAX = -10.0, 10.0
+RHO_MIN, RHO_MAX = 0.01, 6.0
+U_MIN, U_MAX = -4.0, 4.0
 V_MIN, V_MAX = -10.0, 0.99
 
 RANGES = {
